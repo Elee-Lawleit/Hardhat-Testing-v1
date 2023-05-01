@@ -8,12 +8,10 @@ import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 library PriceConverter{
 
     //gonna use chainlink data feeds to get the price
-    function getPrice() public view returns(uint256){
+    function getPrice(AggregatorV3Interface priceFeed) internal view returns(uint256){
         //we are gonna contact a contract that can comminucate to the chainlink data feed to get the price
         //for that, we need the address of the contract, and the ABI (interface which defines all the functions)
 
-        //address 0x694AA1769357215DE4FAC081bf1f309aDC325306
-        AggregatorV3Interface priceFeed = AggregatorV3Interface(0x694AA1769357215DE4FAC081bf1f309aDC325306);
         (
             ,int256 price,,,
         ) = priceFeed.latestRoundData();
@@ -32,16 +30,12 @@ library PriceConverter{
         return uint256 (price * 1e10);
     }
 
-    function getVersion() public view returns(uint256){
-        AggregatorV3Interface priceFeed = AggregatorV3Interface(0xD4a33860578De61DBAbDc8BFdb98FD742fA7028e);
-        return priceFeed.version();
-    }
 
     //the first argument is what the function is being called on
     //kinda like the implicit argument, but here its kinda explicit
 
-    function getConversionRate(uint256 ethAmount) public view returns (uint256){
-        uint256 ethPrice = getPrice();
+    function getConversionRate(uint256 ethAmount, AggregatorV3Interface priceFeedObject) internal view returns (uint256){
+        uint256 ethPrice = getPrice(priceFeedObject);
         uint256 ethAmountInUsd = (ethPrice * ethAmount) / 1e18;
         return ethAmountInUsd;
     }

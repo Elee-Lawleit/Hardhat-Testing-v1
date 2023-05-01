@@ -2,6 +2,7 @@
 pragma solidity ^0.8.7;
 
 import "./PriceConverter.sol";
+import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
 //using custom errors
 //makes the contract more gas efficient because we don't have to store error strings in memory
@@ -26,17 +27,20 @@ contract FundMe{
     //immutable because we're at least setting its value once (inside the constructor)
 
     address public immutable i_owner;
-    uint256 public constant MINIMUM_USD = 50 * 1e18; 
+    uint256 public constant MINIMUM_USD = 50 * 1e18;
+
+    AggregatorV3Interface public priceFeedObject;
 
     //constructors run when the contract is deployed, so when this runs the msg.sender will be the contrac owner
-    constructor(){
+    constructor(address priceFeedAddress){
         i_owner = msg.sender;
+        priceFeedObject = AggregatorV3Interface(priceFeedAddress);
     }
 
     function fund() public payable{
         //getConversionRate(msg.value) becomes msg.value.getConversionRate();
         //and the msg.value becomes the first argument passed to the getConversionRate()
-        require(msg.value.getConversionRate() > MINIMUM_USD, "Must send greater than 50 dollars!");
+        require(msg.value.getConversionRate(priceFeedObject) > MINIMUM_USD, "Must send greater than 50 dollars!");
         funders.push(msg.sender);
         addressToAmoutDonated[msg.sender] = msg.value;
     }

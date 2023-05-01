@@ -27,6 +27,8 @@ module.exports = {
                 ETHEREUM_ACCOUNT_PRIVATE_KEY /* ACC_PR_Key_02,  ACC_PR_Key_03*/,
             ],
             chainId: 11155111,
+            //to wait this many blocks
+            blockConfirmations: 6
         },
         //this is different from the fake hardhat network, the fake network only lives until the execution of the script is complete
         //this still uses the hardhat network, but is sort of the same as ganache
@@ -37,7 +39,14 @@ module.exports = {
             chainId: 31337,
         },
     },
-    solidity: "0.8.7",
+    // solidity: "0.8.7",
+    //adding multiple solidity version, to work with multiple contracts which are on different solidity versions
+    solidity:{
+      compilers:[
+        {version: "0.8.8"},
+        {version: "0.6.6"}
+      ]
+    },
 
     //etherscan plugin
 
@@ -67,13 +76,13 @@ module.exports = {
         //can set different deployer accounts based on different chains
         //add the chainId number and then the position of the account in the array
 
-        11155111: 3
+        // 11155111: 3
 
         // ^ the account at position 3 will be used as deployer for Sepolia now
       },
       //can create multiple named accounts
-      user:{
-        default: 1
-      }
+      // user:{
+      //   default: 1
+      // }
     },
 }
