@@ -1,23 +1,49 @@
 // SPDX-License-Identifier: MIT
+
+//some good practice & organization
+
+// 1. Pragma directive
 pragma solidity ^0.8.7;
 
+// 2. Imports
 import "./PriceConverter.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+import "hardhat/console.sol"; //--> can use console.log() through this, so good omg
+
+
 
 //using custom errors
 //makes the contract more gas efficient because we don't have to store error strings in memory
 
-error NotOwner();
+// 3. Error Codes
 
+//it's best to label which contract is using the error label, seperate the error name and contract name with underscores
+error FundMe__NotOwner();
+
+// 4. Interfaces   5. Libraries
+// 6. Contracts
+
+// NatSpec Format (Ethereum Natural Language Specification Format) comments
+
+/**
+ * @title A contract for crowd funding
+ * @author Elee Lawleit
+ * @notice This contract is to demo a sample FundMe contract
+ * @dev This implements price feeds as our library
+ */
 
 contract FundMe{
+    // inside the contract, follow this order
 
+    // 1. Type declerations
     using PriceConverter for uint256;
     //meaning any uint256 variable can now call functions from this library
     //as if it were an object
 
     //$50 at least
     //uint256 public minimumUSD = 50 * 1e18; beacuse the value returned by other functions will have 18 zeros
+
+    // 2. State variables
     address[] public funders;
     mapping(address => uint256) public addressToAmoutDonated;
 
@@ -31,13 +57,68 @@ contract FundMe{
 
     AggregatorV3Interface public priceFeedObject;
 
+    // 3. Events
+    // 4. Modifiers
+
+     modifier onlyOwner{
+        //require(msg.sender == i_owner, "Unauthorized access! Sender is not owner"); //--> do this first
+        
+        //same as the above require, new and recommended (more gas efficient)
+        if(msg.sender != i_owner){
+            revert FundMe__NotOwner();
+        }
+        _; //--> execute the rest of the function later
+    }
+    // 5. Functions
+        // a. constructors
+        // b. receive
+        // c. fallback
+        // d. external
+        // e. public
+        // f. internal
+        // g. private
+        // h. view / pure
+
     //constructors run when the contract is deployed, so when this runs the msg.sender will be the contrac owner
     constructor(address priceFeedAddress){
         i_owner = msg.sender;
         priceFeedObject = AggregatorV3Interface(priceFeedAddress);
     }
 
+
+    //           is msg.data empty?
+    //                /      \
+    //              yes       no
+    //              /          \
+    //         recieve hai?    fallback()
+    //          /      \
+    //         yes     no
+    //        /          \
+    //    receive()    fallback()
+
+    //what happens when someone sends this contract money without calling the fund function???
+    //just like how I was trying to send ETH through MetaMask, I can't really call the fund function there, right?
+
+    //so when that's the case, the *receive* function will run
+    //receive function runs when there is no data with the transaction
+    // ie, when it's not specified which function to call
+    receive() external payable{
+        fund();
+    }
+
+    //fallback is another function that runs when the function is specified but it doesn't exit
+    //that's why it's a fallback ¯\_(ツ)_/¯ 
+    fallback() external{
+        fund();
+    }
+
+
+    /**
+     * @notice This function funds this contract
+     * @dev This implements price feeds as our library
+     */
     function fund() public payable{
+        console.log("This is the best");
         //getConversionRate(msg.value) becomes msg.value.getConversionRate();
         //and the msg.value becomes the first argument passed to the getConversionRate()
         require(msg.value.getConversionRate(priceFeedObject) > MINIMUM_USD, "Must send greater than 50 dollars!");
@@ -87,41 +168,5 @@ contract FundMe{
         //using the memory keyword because bytes is gonna be an array (which is not a primitive data type)
 
         //(bool callSuccess, bytes memory dataReturned) = payable(msg.sender).call{value: address(this).balance}("");
-    }
-
-    modifier onlyOwner{
-        //require(msg.sender == i_owner, "Unauthorized access! Sender is not owner"); //--> do this first
-        
-        //same as the above require, new and recommended (more gas efficient)
-        if(msg.sender != i_owner){
-            revert NotOwner();
-        }
-        _; //--> execute the rest of the function later
-    }
-
-    //           is msg.data empty?
-    //                /      \
-    //              yes       no
-    //              /          \
-    //         recieve hai?    fallback()
-    //          /      \
-    //         yes     no
-    //        /          \
-    //    receive()    fallback()
-
-    //what happens when someone sends this contract money without calling the fund function???
-    //just like how I was trying to send ETH through MetaMask, I can't really call the fund function there, right?
-
-    //so when that's the case, the *receive* function will run
-    //receive function runs when there is no data with the transaction
-    // ie, when it's not specified which function to call
-    receive() external payable{
-        fund();
-    }
-
-    //fallback is another function that runs when the function is specified but it doesn't exit
-    //that's why it's a fallback ¯\_(ツ)_/¯ 
-    fallback() external{
-        fund();
     }
 }

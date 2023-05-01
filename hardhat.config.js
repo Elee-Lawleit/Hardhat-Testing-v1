@@ -64,7 +64,7 @@ module.exports = {
         currency: "PKR",
         coinmarketcap: COINMARKETCAP_API_KEY,
         //to see info for different blockchains, MATIC is for polygon
-        token: "MATIC",
+        token: "ETH",
     },
     //to give the accounts being used a name
     //to easily access them
